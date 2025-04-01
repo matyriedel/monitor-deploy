@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus/data:/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./grafana:/var/lib/grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+
+  node_exporter:
+    image: prom/node-exporter
+    container_name: node_exporter
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - ./node_exporter/textfile_collector:/var/lib/node_exporter
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --collector.textfile.directory=/var/lib/node_exporter
+
+  blackbox_exporter:
+    image: prom/blackbox-exporter
+    container_name: blackbox_exporter
+    ports:
+      - "9115:9115"
+    volumes:
+      - ./blackbox:/config
+    command:
+      - --config.file=/config/blackbox.yml
+
+  snmp_exporter:
+    image: prom/snmp-exporter
+    container_name: snmp_exporter
+    ports:
+      - "9116:9116"
+    volumes:
+      - ./snmp:/etc/snmp_exporter
